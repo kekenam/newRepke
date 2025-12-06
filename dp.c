@@ -12,7 +12,7 @@ void checkTimeAndLimitExceed() {
 	printf("opCnt: %llu", opCnt);
 	if (opCnt > TIME_LIMIT)
 		printf(" -> TimeLimitExceed -> FUCKED!!!");
-	printf("\n");
+	printf("\n\n");
 	opCnt = 0;
 }
 
@@ -21,12 +21,22 @@ ull* dp;
 char* x;
 char* y;
 int** c;
-char* result;
 int sizeX;
 int sizeY;
 int n;
 
+ull fuckedWays(int n) {
+	opCnt++;
+	if (n == 0)
+		return 1;
+	else if (n < 0)
+		return 0;
+	else
+		return fuckedWays(n - 1) + fuckedWays(n - 2) + fuckedWays(n - 3);
+}
+
 ull waysTD(int n) {
+	opCnt++;
 	if (n == 0)
 		return 1;
 	else if (n < 0)
@@ -39,6 +49,7 @@ ull waysTD(int n) {
 }
 
 ull waysBU(int n) {
+	opCnt++;
 	if (n == 0)
 		return 1;
 	else if (n < 0)
@@ -46,6 +57,7 @@ ull waysBU(int n) {
 
 	dp[0] = 1;
 	for (int i = 1; i <= n; i++) {
+		opCnt++;
 		dp[i] += dp[i - 1];
 		if (i - 2 >= 0)
 			dp[i] += dp[i - 2];
@@ -56,6 +68,7 @@ ull waysBU(int n) {
 }
 
 ull waysUpgradedBU(int n) {
+	opCnt++;
 	if (n == 0)
 		return 1;
 	else if (n < 0)
@@ -65,6 +78,7 @@ ull waysUpgradedBU(int n) {
 	ull current = 0;
 
 	for (int i = 1; i <= n; i++) {
+		opCnt++;
 		current = prev1 + prev2 + prev3;
 		prev3 = prev2;
 		prev2 = prev1;
@@ -85,6 +99,7 @@ int fuckedLcs(char* x, char* y, int i, int j) {
 }
 
 int lcsTD(char* x, char* y, int i, int j) {
+	opCnt++;
 	if (i == 0 || j == 0)
 		return 0;
 	if (c[i][j] != -1)
@@ -117,12 +132,6 @@ void allocateDP() {
 
 	for (int i = 0; i <= n; i++) {
 		dp[i] = -1;
-	}
-
-	result = (char*)malloc(min(sizeX, sizeY) * (sizeof(char)));
-	if (!result) {
-		deAllocteDP();
-		exit(1);
 	}
 	
 	c = (int**)calloc((sizeX + 1), sizeof(int*));
@@ -162,23 +171,33 @@ void deAllocteDP() {
 		free(c);
 
 	}
-	if (result)
-		free(result);
 }
 
 int main(void) {
 	printf("n of ways(n): ");
 	scanf("%d", &n);
 	allocateDP();
-	printf("result of TD BU 3 Variables BU\n%llu %llu %llu\n", waysTD(n), waysBU(n), waysUpgradedBU(n));
+	printf("result of TD BU 3 Variables BU\n");
+	printf("Brute Force: %ull\n", fuckedWays(n));
+	checkTimeAndLimitExceed();
+	printf("Top-Down: %ull\n", waysTD(n));
+	checkTimeAndLimitExceed();
+	printf("Bottom-Up: %ull\n", waysBU(n));
+	checkTimeAndLimitExceed();
+	printf("3 varitables Bottom-Up: %ull\n", waysUpgradedBU(n));
+	checkTimeAndLimitExceed();
 	
 	printf("length of str x, y (sizeX sizeY): ");
 	scanf("%d %d", &sizeX, &sizeY);
 	printf("str x y (x y): ");
 	scanf("%s %s", x, y);
-	fuckedLcs(x, y, sizeX, sizeY);
-	lcsTD(x, y, sizeX, sizeY);
-	
+	printf("result of LCS\n");
+	printf("Brute Force: %d\n", fuckedLcs(x, y, sizeX, sizeY));
+	checkTimeAndLimitExceed();
+	printf("Top-Down: %d\n", lcsTD(x, y, sizeX, sizeY));
+	checkTimeAndLimitExceed();
+
+
 	deAllocteDP();
 	return 0;
 }
