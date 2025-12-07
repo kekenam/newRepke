@@ -21,8 +21,10 @@ ull* dp;
 char* x;
 char* y;
 int** c;
+int** v;
 int sizeX;
 int sizeY;
+int size;
 int n;
 
 ull fuckedWays(int n) {
@@ -104,15 +106,65 @@ int lcsTD(char* x, char* y, int i, int j) {
 		return 0;
 	if (c[i][j] != -1)
 		return c[i][j];
-	if (x[i] == y[j])
+	if (x[i-1] == y[j-1])
 		c[i][j] = lcsTD(x, y, i - 1, j - 1) + 1;
 	else
-		c[i][j] = max(fuckedLcs(x, y, i, j - 1), fuckedLcs(x, y, i - 1, j));
+		c[i][j] = max(lcsTD(x, y, i, j - 1), lcsTD(x, y, i - 1, j));
 
 	return c[i][j];
 
 }
 
+int lcsBU(char* x, char* y, int n, int m) {
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (x[i] == y[j])
+				c[i][j] = c[i - 1][j - 1] + 1;
+			else
+				c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+		}
+	}
+	return c[n][m];
+}
+
+int lcsUpgradedBU(char* x, char* y, int n, int m) {
+	int* strMatrix[2];
+	strMatrix[0] = x;
+	strMatrix[1] = y;
+}
+
+ull knapsackBU(int* values, int* weights) {
+
+}
+void initDP(int a) {
+	for (int i = 0; i <= n; i++) {
+		dp[i] = a;
+	}
+}
+
+void deAllocteDP() {
+	if (y)
+		free(y);
+	if (x)
+		free(x);
+	if (dp)
+		free(dp);
+	if (c) {
+		for (int i = 0; i <= sizeX; i++) {
+			if (c[i])
+				free(c[i]);
+		}
+		free(c);
+
+	}
+	if (v) {
+		for (int i = 0; i <= size; i++) {
+			if (v[i])
+				free(v[i]);
+		}
+		free(v);
+	}
+}
 
 void allocateDP() {
 	dp = (ull*)calloc(n + 1, sizeof(ull));	
@@ -130,14 +182,13 @@ void allocateDP() {
 		exit(1);
 	}
 
-	for (int i = 0; i <= n; i++) {
-		dp[i] = -1;
-	}
+	
 	
 	c = (int**)calloc((sizeX + 1), sizeof(int*));
-	if (!c)
+	if (!c) {
+		deAllocteDP();
 		exit(1);
-
+	}
 	for (int i = 0; i <= sizeX; i++) {
 		c[i] = (int*)calloc((sizeY + 1), sizeof(int));
 		if (!c[i]) {
@@ -156,35 +207,21 @@ void allocateDP() {
 
 }
 
-void deAllocteDP() {
-	if(y)
-		free(y);
-	if(x)
-		free(x);
-	if(dp)
-		free(dp);
-	if (c) {
-		for (int i = 0; i <= sizeX; i++) {
-			if(c[i])
-				free(c[i]);
-		}
-		free(c);
-
-	}
-}
 
 int main(void) {
 	printf("n of ways(n): ");
 	scanf("%d", &n);
 	allocateDP();
 	printf("result of TD BU 3 Variables BU\n");
-	printf("Brute Force: %ull\n", fuckedWays(n));
+	printf("Brute Force: %llu\n", fuckedWays(n));
 	checkTimeAndLimitExceed();
-	printf("Top-Down: %ull\n", waysTD(n));
+	initDP(-1);
+	printf("Top-Down: %llu\n", waysTD(n));
 	checkTimeAndLimitExceed();
-	printf("Bottom-Up: %ull\n", waysBU(n));
+	initDP(0);
+	printf("Bottom-Up: %llu\n", waysBU(n));
 	checkTimeAndLimitExceed();
-	printf("3 varitables Bottom-Up: %ull\n", waysUpgradedBU(n));
+	printf("3 varitables Bottom-Up: %llu\n", waysUpgradedBU(n));
 	checkTimeAndLimitExceed();
 	
 	printf("length of str x, y (sizeX sizeY): ");
