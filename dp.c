@@ -94,7 +94,7 @@ int fuckedLcs(char* x, char* y, int i, int j) {
 	opCnt++;
 	if (i == 0 || j == 0)
 		return 0;
-	if (x[i] == y[j])
+	if (x[i-1] == y[j-1])
 		return fuckedLcs(x, y, i - 1, j - 1) + 1;
 	else
 		return max(fuckedLcs(x, y, i, j - 1), fuckedLcs(x, y, i - 1, j));
@@ -104,13 +104,12 @@ int lcsTD(char* x, char* y, int i, int j) {
 	opCnt++;
 	if (i == 0 || j == 0)
 		return 0;
-	if (c[i][j] != -1)
-		return c[i][j];
-	if (x[i-1] == y[j-1])
-		c[i][j] = lcsTD(x, y, i - 1, j - 1) + 1;
-	else
-		c[i][j] = max(lcsTD(x, y, i, j - 1), lcsTD(x, y, i - 1, j));
-
+	if (c[i][j] == -1) {
+		if (x[i - 1] == y[j - 1])
+			c[i][j] = lcsTD(x, y, i - 1, j - 1) + 1;
+		else
+			c[i][j] = max(lcsTD(x, y, i, j - 1), lcsTD(x, y, i - 1, j));
+	}
 	return c[i][j];
 
 }
@@ -118,7 +117,7 @@ int lcsTD(char* x, char* y, int i, int j) {
 int lcsBU(char* x, char* y, int n, int m) {
 	for (int i = 1; i <= n; i++) {
 		for (int j = 1; j <= m; j++) {
-			if (x[i] == y[j])
+			if (x[i-1] == y[j-1])
 				c[i][j] = c[i - 1][j - 1] + 1;
 			else
 				c[i][j] = max(c[i][j - 1], c[i - 1][j]);
@@ -139,6 +138,14 @@ ull knapsackBU(int* values, int* weights) {
 void initDP(int a) {
 	for (int i = 0; i <= n; i++) {
 		dp[i] = a;
+	}
+}
+
+void initMatrixDP(int a) {
+	for (int i = 1; i <= sizeX; i++) {
+		for (int j = 1; j <= sizeY; j++) {
+			c[i][j] = a;
+		}
 	}
 }
 
@@ -199,11 +206,7 @@ void allocateDP() {
 			deAllocteDP();
 		}
 	}
-	for (int i = 1; i <= sizeX; i++) {
-		for (int j = 1; j <= sizeY; j++) {
-			c[i][j] = -1;
-		}
-	}
+	
 
 }
 
@@ -211,7 +214,15 @@ void allocateDP() {
 int main(void) {
 	printf("n of ways(n): ");
 	scanf("%d", &n);
+	printf("length of str x, y (sizeX sizeY): ");
+	scanf("%d %d", &sizeX, &sizeY);
+	
 	allocateDP();
+
+	printf("str x y (x y): ");
+	scanf("%s %s", x, y);
+
+
 	printf("result of TD BU 3 Variables BU\n");
 	printf("Brute Force: %llu\n", fuckedWays(n));
 	checkTimeAndLimitExceed();
@@ -224,13 +235,11 @@ int main(void) {
 	printf("3 varitables Bottom-Up: %llu\n", waysUpgradedBU(n));
 	checkTimeAndLimitExceed();
 	
-	printf("length of str x, y (sizeX sizeY): ");
-	scanf("%d %d", &sizeX, &sizeY);
-	printf("str x y (x y): ");
-	scanf("%s %s", x, y);
+	
 	printf("result of LCS\n");
 	printf("Brute Force: %d\n", fuckedLcs(x, y, sizeX, sizeY));
 	checkTimeAndLimitExceed();
+	initMatrixDP(-1);
 	printf("Top-Down: %d\n", lcsTD(x, y, sizeX, sizeY));
 	checkTimeAndLimitExceed();
 
