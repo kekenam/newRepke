@@ -128,13 +128,20 @@ int lcsBU(char* x, char* y, int n, int m) {
 
 int lcsUpgradedBU(char* x, char* y, int n, int m) {
 	int* strMatrix[2];
-	strMatrix[0] = x;
-	strMatrix[1] = y;
+	strMatrix[0] = c[0];
+	strMatrix[1] = c[1];
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			opCnt++;
+			if (x[i-1] == y[j-1])
+				strMatrix[i % 2][j] = strMatrix[!(i % 2)][j - 1] + 1;
+			else
+				strMatrix[i % 2][j] = max(strMatrix[i % 2][j - 1], strMatrix[!(i % 2)][j]);
+		}
+	}
+	return strMatrix[n % 2][m];
 }
 
-ull knapsackBU(int* values, int* weights) {
-
-}
 void initDP(int a) {
 	for (int i = 0; i <= n; i++) {
 		dp[i] = a;
