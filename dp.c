@@ -22,10 +22,14 @@ char* x;
 char* y;
 int** c;
 int** v;
+int* values;
+int* weights;
 int sizeX;
 int sizeY;
-int size;
+int sizeV;
+int sizeW;
 int n;
+
 
 ull fuckedWays(int n) {
 	opCnt++;
@@ -76,7 +80,7 @@ ull waysUpgradedBU(int n) {
 	else if (n < 0)
 		return 0;
 
-	ull prev1=1, prev2= 0, prev3=0;
+	ull prev1 = 1, prev2 = 0, prev3 = 0;
 	ull current = 0;
 
 	for (int i = 1; i <= n; i++) {
@@ -94,10 +98,10 @@ int fuckedLcs(char* x, char* y, int i, int j) {
 	opCnt++;
 	if (i == 0 || j == 0)
 		return 0;
-	if (x[i-1] == y[j-1])
+	if (x[i - 1] == y[j - 1])
 		return fuckedLcs(x, y, i - 1, j - 1) + 1;
 	else
-		return max(fuckedLcs(x, y, i, j - 1), fuckedLcs(x, y, i - 1, j));
+		return fmax(fuckedLcs(x, y, i, j - 1), fuckedLcs(x, y, i - 1, j));
 }
 
 int lcsTD(char* x, char* y, int i, int j) {
@@ -108,7 +112,7 @@ int lcsTD(char* x, char* y, int i, int j) {
 		if (x[i - 1] == y[j - 1])
 			c[i][j] = lcsTD(x, y, i - 1, j - 1) + 1;
 		else
-			c[i][j] = max(lcsTD(x, y, i, j - 1), lcsTD(x, y, i - 1, j));
+			c[i][j] = fmax(lcsTD(x, y, i, j - 1), lcsTD(x, y, i - 1, j));
 	}
 	return c[i][j];
 
@@ -117,10 +121,14 @@ int lcsTD(char* x, char* y, int i, int j) {
 int lcsBU(char* x, char* y, int n, int m) {
 	for (int i = 1; i <= n; i++) {
 		for (int j = 1; j <= m; j++) {
-			if (x[i-1] == y[j-1])
+			if (x[i - 1] == y[j - 1]) {
 				c[i][j] = c[i - 1][j - 1] + 1;
-			else
-				c[i][j] = max(c[i][j - 1], c[i - 1][j]);
+				opCnt++;
+			}
+			else {
+				c[i][j] = fmax(c[i][j - 1], c[i - 1][j]);
+				opCnt += 2;
+			}
 		}
 	}
 	return c[n][m];
@@ -132,14 +140,34 @@ int lcsUpgradedBU(char* x, char* y, int n, int m) {
 	strMatrix[1] = c[1];
 	for (int i = 1; i <= n; i++) {
 		for (int j = 1; j <= m; j++) {
-			opCnt++;
-			if (x[i-1] == y[j-1])
+			if (x[i - 1] == y[j - 1]) {
 				strMatrix[i % 2][j] = strMatrix[!(i % 2)][j - 1] + 1;
-			else
-				strMatrix[i % 2][j] = max(strMatrix[i % 2][j - 1], strMatrix[!(i % 2)][j]);
+				opCnt++;
+			}
+			else {
+				strMatrix[i % 2][j] = fmax(strMatrix[i % 2][j - 1], strMatrix[!(i % 2)][j]);
+				opCnt += 2;
+			}
 		}
 	}
 	return strMatrix[n % 2][m];
+}
+
+int knapsackBU(int** v, int* values, int* weights, int n, int w) {
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= w; j++) {
+			if (j >= weights[i]) {
+				v[i][j] = fmax(v[i - 1][j], values[i] + v[i - 1][j - weights[i]]);
+				opCnt += 2;
+			}
+			else {
+				v[i][j] = v[i - 1][j];
+				opCnt++;
+			}
+		}
+	}
+
+	return v[n][w];
 }
 
 void initDP(int a) {
@@ -154,15 +182,25 @@ void initMatrixDP(int a) {
 			c[i][j] = a;
 		}
 	}
+
+	for (int i = 1; i <= sizeV; i++) {
+		for (int j = 1; j <= sizeW; j++) {
+			v[i][j] = a;
+		}
+	}
 }
 
-void deAllocteDP() {
+void deAllocateDP() {
 	if (y)
 		free(y);
 	if (x)
 		free(x);
 	if (dp)
 		free(dp);
+	if (values)
+		free(values);
+	if (weights)
+		free(weights);
 	if (c) {
 		for (int i = 0; i <= sizeX; i++) {
 			if (c[i])
@@ -172,7 +210,7 @@ void deAllocteDP() {
 
 	}
 	if (v) {
-		for (int i = 0; i <= size; i++) {
+		for (int i = 0; i <= sizeV; i++) {
 			if (v[i])
 				free(v[i]);
 		}
@@ -181,7 +219,7 @@ void deAllocteDP() {
 }
 
 void allocateDP() {
-	dp = (ull*)calloc(n + 1, sizeof(ull));	
+	dp = (ull*)calloc(n + 1, sizeof(ull));
 	if (!dp)
 		exit(1);
 	x = (char*)malloc((sizeX + 1) * sizeof(char));
@@ -196,11 +234,29 @@ void allocateDP() {
 		exit(1);
 	}
 
-	
-	
+	values = (int*)calloc((sizeV + 1), sizeof(int));
+	if (!values) {
+		free(dp);
+		free(x);
+		free(y);
+		exit(1);
+	}
+
+	weights = (int*)calloc((sizeV + 1), sizeof(int));
+	if (!weights) {
+		free(dp);
+		free(x);
+		free(y);
+		free(values);
+		exit(1);
+	}
+
+
+
 	c = (int**)calloc((sizeX + 1), sizeof(int*));
-	if (!c) {
-		deAllocteDP();
+	v = (int**)calloc((sizeV + 1), sizeof(int*));
+	if (!c || !v) {
+		deAllocateDP();
 		exit(1);
 	}
 	for (int i = 0; i <= sizeX; i++) {
@@ -210,10 +266,20 @@ void allocateDP() {
 				free(c[i]);
 			}
 			free(c);
-			deAllocteDP();
+			deAllocateDP();
 		}
 	}
-	
+	for (int i = 0; i <= sizeV; i++) {
+		v[i] = (int*)calloc((sizeW + 1), sizeof(int));
+		if (!v[i]) {
+			for (int j = i - 1; j >= 0; j--) {
+				free(v[i]);
+			}
+			free(v);
+			deAllocateDP();
+		}
+	}
+
 
 }
 
@@ -223,12 +289,23 @@ int main(void) {
 	scanf("%d", &n);
 	printf("length of str x, y (sizeX sizeY): ");
 	scanf("%d %d", &sizeX, &sizeY);
-	
+
+	printf("n w of knapsack(n, w): ");
+	scanf("%d %d", &sizeV, &sizeW);
+
 	allocateDP();
 
 	printf("str x y (x y): ");
 	scanf("%s %s", x, y);
 
+
+	printf("v values, w values\n v1 w1\nv2 w2\n...:\n");
+	for (int i = 1; i <= sizeV; i++) {
+		int inputV, inputW;
+		scanf("%d %d", &inputV, &inputW);
+		values[i] = inputV;
+		weights[i] = inputW;
+	}
 
 	printf("result of TD BU 3 Variables BU\n");
 	printf("Brute Force: %llu\n", fuckedWays(n));
@@ -241,17 +318,24 @@ int main(void) {
 	checkTimeAndLimitExceed();
 	printf("3 varitables Bottom-Up: %llu\n", waysUpgradedBU(n));
 	checkTimeAndLimitExceed();
-	
-	
+
+
 	printf("result of LCS\n");
 	printf("Brute Force: %d\n", fuckedLcs(x, y, sizeX, sizeY));
 	checkTimeAndLimitExceed();
 	initMatrixDP(-1);
 	printf("Top-Down: %d\n", lcsTD(x, y, sizeX, sizeY));
 	checkTimeAndLimitExceed();
+	initMatrixDP(-1);
+	printf("Bottom-Up: %d\n", lcsBU(x, y, sizeX, sizeY));
+	checkTimeAndLimitExceed();
+	initMatrixDP(-1);
+	printf("2-line-Bottom-Up: %d\n", lcsUpgradedBU(x, y, sizeX, sizeY));
+	checkTimeAndLimitExceed();
 
+	printf("knapsack: %d\n", knapsackBU(v, values, weights, sizeV, sizeW));
+	checkTimeAndLimitExceed();
 
-	deAllocteDP();
+	deAllocateDP();
 	return 0;
 }
-
